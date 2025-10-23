@@ -17,7 +17,6 @@ class LoginView(TokenObtainPairView):
 class SkillListCreateView(generics.ListCreateAPIView):
     serializer_class = SkillSerializer
     permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
 
 
     def get_queryset(self):

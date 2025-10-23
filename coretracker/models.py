@@ -23,7 +23,11 @@ class Skill(models.Model):
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Not Started')
     created_at = models.DateTimeField(auto_now_add=True)    
-    updated_at = models.DateTimeField(auto_now=True)        
+    updated_at = models.DateTimeField(auto_now=True)  
+    certification_name = models.CharField(max_length=100, blank=True)
+    certification_link = models.URLField(blank=True)
+    certification_image = models.ImageField(upload_to='certificates/', blank=True, null=True)
+      
 
     def __str__(self):
         return f"{self.name} ({self.user.username})"
