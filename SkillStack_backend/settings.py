@@ -1,30 +1,26 @@
+import os
+from pathlib import Path
 from datetime import timedelta
-from pathlib import Path, os
-from decouple import config
-
+from decouple import config  # Optional: if you want to use .env locally
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ===========================
+# Environment Variables
+# ===========================
+SECRET_KEY = os.environ.get('SECRET_KEY')  # Railway ENV variable
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
-OPENAI_API_KEY = config('OPENAI_API_KEY')
-# print("API Key:", API_KEY)
+# ===========================
+# Allowed Hosts
+# ===========================
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')  # e.g., "example.com,localhost"
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wh8latx538y41&y@)da^qr1=25t0-y1tnz+let*#ye*8#uk)&k'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
-
+# ===========================
+# Installed Apps
+# ===========================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,11 +30,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
     'coretracker',
-    'corsheaders'
 ]
 
-
+# ===========================
+# Middleware
+# ===========================
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -69,91 +67,72 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SkillStack_backend.wsgi.application'
 
-
+# ===========================
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+# ===========================
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'SkillStack',
-        'USER': 'postgres',
-        'PASSWORD': 'Admin',
-        'HOST': 'localhost',
-        'PORT': '5432',
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USER'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT'),
     }
 }
 
-SECRET_KEY = 'django-insecure-your-random-key-123456'
-DEBUG = True
-
-
-
-
+# ===========================
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# ===========================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-
+# ===========================
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
+# ===========================
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
+# ===========================
+# Static and Media
+# ===========================
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+# ===========================
+# REST Framework
+# ===========================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
-# Media files (for certification images)
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
- 
+# ===========================
+# CORS
+# ===========================
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 
+# ===========================
+# JWT Settings
+# ===========================
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # default: 5 mins
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # default: 1 day
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+# ===========================
+# Default Primary Key
+# ===========================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
