@@ -6,6 +6,7 @@
 .pnp.js
 .venv/
 SkillStack_backend/test_env.py
+test_decouple.py
 .env
 __pycache__
 *.pyc

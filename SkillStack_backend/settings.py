@@ -1,26 +1,20 @@
 import os
 from pathlib import Path
 from datetime import timedelta
-from decouple import config  # Optional: if you want to use .env locally
+from decouple import config 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ===========================
-# Environment Variables
-# ===========================
-SECRET_KEY = os.environ.get('SECRET_KEY')  # Railway ENV variable
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('SECRET_KEY', config('SECRET_KEY', default='django-insecure-default-key'))
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', config('OPENAI_API_KEY', default=''))
 
-# ===========================
-# Allowed Hosts
-# ===========================
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')  # e.g., "example.com,localhost"
 
-# ===========================
-# Installed Apps
-# ===========================
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# INSTALLED_APPS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,9 +28,7 @@ INSTALLED_APPS = [
     'coretracker',
 ]
 
-# ===========================
-# Middleware
-# ===========================
+# MIDDLEWARE
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -67,23 +59,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SkillStack_backend.wsgi.application'
 
-# ===========================
 # Database
-# ===========================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DATABASE_NAME'),
-        'USER': os.environ.get('DATABASE_USER'),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-        'HOST': os.environ.get('DATABASE_HOST'),
-        'PORT': os.environ.get('DATABASE_PORT'),
+        'NAME': os.environ.get('DATABASE_NAME', config('DATABASE_NAME', default='SkillStack')),
+        'USER': os.environ.get('DATABASE_USER', config('DATABASE_USER', default='postgres')),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', config('DATABASE_PASSWORD', default='Admin')),
+        'HOST':  os.environ.get('DATABASE_HOST', config('DATABASE_HOST', default='localhost')),
+        'PORT': os.environ.get('DATABASE_PORT', config('DATABASE_PORT', default='5432')),
     }
 }
 
-# ===========================
 # Password validation
-# ===========================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -91,40 +79,33 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# ===========================
+
 # Internationalization
-# ===========================
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ===========================
+
 # Static and Media
-# ===========================
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ===========================
+
 # REST Framework
-# ===========================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 
-# ===========================
 # CORS
-# ===========================
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 
-# ===========================
 # JWT Settings
-# ===========================
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -132,7 +113,5 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-# ===========================
 # Default Primary Key
-# ===========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
