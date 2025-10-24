@@ -1,8 +1,14 @@
 from datetime import timedelta
 from pathlib import Path, os
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+OPENAI_API_KEY = config('OPENAI_API_KEY')
+# print("API Key:", API_KEY)
 
 
 # Quick-start development settings - unsuitable for production
@@ -150,3 +156,4 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
