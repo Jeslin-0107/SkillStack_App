@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
-import axios from "axios";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -11,24 +10,19 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import api from "../api/axiosInstance";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [skills, setSkills] = useState([]);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const token = localStorage.getItem("access");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
+  // ------------------- Fetch Skills -------------------
   const fetchSkills = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/skills/", axiosConfig);
+      const response = await api.get("skills/");
       setSkills(response.data);
     } catch (error) {
       console.error("Failed to fetch skills:", error);
@@ -39,7 +33,7 @@ const Dashboard = () => {
     fetchSkills();
   }, []);
 
-  // Prepare data for chart
+  // ------------------- Chart Data -------------------
   const chartData = {
     labels: skills.map((s) => s.name),
     datasets: [
@@ -51,14 +45,23 @@ const Dashboard = () => {
     ],
   };
 
-  return (
-    <div className="flex min-h-screen bg-gradient-to-r from-purple-100 via-pink-100 to-yellow-100">
+  // ------------------- Logout Handlers -------------------
+  const handleLogout = () => {
+    localStorage.removeItem("access"); // remove token
+    window.location.href = "/login"; // redirect to login
+  };
 
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gradient-to-r from-purple-100 via-pink-100 to-yellow-100 relative">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-16"
-        } bg-gradient-to-b from-blue-700 to-indigo-700 text-white flex flex-col transition-width duration-300`}
+        } bg-gradient-to-b from-blue-700 bg-pink-500/[71.37%] text-white flex flex-col transition-width duration-300`}
       >
         <div className="flex items-center justify-between p-4 border-b border-blue-800">
           {sidebarOpen && (
@@ -76,30 +79,24 @@ const Dashboard = () => {
         </div>
 
         <nav className="flex flex-col mt-6 space-y-4">
-          <a
-            href="/dashboard"
-            className="hover:bg-blue-800 px-4 py-2 rounded flex items-center"
-          >
+          <a href="/dashboard" className="hover:bg-blue-800 px-4 py-2 rounded flex items-center">
             {sidebarOpen && <span>Dashboard</span>}
           </a>
-          <a
-            href="/my-skills"
-            className="hover:bg-blue-800 px-4 py-2 rounded flex items-center"
-          >
+          <a href="/my-skills" className="hover:bg-blue-800 px-4 py-2 rounded flex items-center">
             {sidebarOpen && <span>My Skills</span>}
           </a>
-          <a
-            href="#"
-            className="hover:bg-blue-800 px-4 py-2 rounded flex items-center"
-          >
+          <a href="/profile" className="hover:bg-blue-800 px-4 py-2 rounded flex items-center">
             {sidebarOpen && <span>Profile</span>}
           </a>
-          <a
-            href="/login"
-            className="hover:bg-blue-800 px-4 py-2 rounded mt-auto flex items-center"
+          <a href="/notes" className="hover:bg-blue-800 px-4 py-2 rounded flex items-center">
+            {sidebarOpen && <span>Notes</span>}
+          </a>
+          <button
+            onClick={() => setShowLogoutModal(true)}
+            className="hover:bg-blue-800 px-4 py-2 rounded mt-auto flex items-center text-left"
           >
             {sidebarOpen && <span>Logout</span>}
-          </a>
+          </button>
         </nav>
       </aside>
 
@@ -115,23 +112,12 @@ const Dashboard = () => {
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold">Completed</h2>
-            <p className="text-3xl mt-4">
-              {skills.filter((s) => s.status === "Completed").length}
-            </p>
+            <p className="text-3xl mt-4">{skills.filter((s) => s.status === "Completed").length}</p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold">In Progress</h2>
-            <p className="text-3xl mt-4">
-              {skills.filter((s) => s.status === "In Progress").length}
-            </p>
+            <p className="text-3xl mt-4">{skills.filter((s) => s.status === "In Progress").length}</p>
           </div>
-        </div>
-
-        {/* Add Skill Button */}
-        <div className="text-center mb-6">
-          <button className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition">
-            + Add Skill
-          </button>
         </div>
 
         {/* Chart */}
@@ -144,6 +130,29 @@ const Dashboard = () => {
           )}
         </div>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
+            <h2 className="text-xl font-bold mb-4">Are you sure you want to logout?</h2>
+            <div className="flex justify-around mt-6">
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition"
+              >
+                Logout
+              </button>
+              <button
+                onClick={handleCancelLogout}
+                className="bg-gray-300 px-6 py-2 rounded hover:bg-gray-400 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
