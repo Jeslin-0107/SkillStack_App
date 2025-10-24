@@ -1,3 +1,4 @@
+// src/components/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
@@ -13,24 +14,22 @@ const Login = () => {
     setError("");
 
     try {
-      // ✅ Use full path for token endpoint
-      const response = await api.post("login/", { username, password });
+      const response = await api.post("login/", { username, password }); // ✅ sends to /api/login/
 
-
-      // Save tokens in localStorage
+      // Save JWT tokens in localStorage
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
 
       // Redirect to dashboard
       navigate("/dashboard");
     } catch (err) {
-      console.error(err.response?.data || err);
-      setError("Invalid username or password.");
+      console.error("Login error:", err.response?.data || err);
+      setError(err.response?.data.detail || "Invalid username or password.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-100 via-pink-100 to-yellow-100 ">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-100 via-pink-100 to-yellow-100">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}

@@ -1,93 +1,117 @@
 import React, { useState, useEffect } from "react";
-import api from "../api/axiosInstance"; // ✅ using our token-safe Axios instance
+import api from "../api/axiosInstance";
 
 const Notes = () => {
   const [notes, setNotes] = useState([]);
   const [skills, setSkills] = useState([]);
   const [selectedSkill, setSelectedSkill] = useState("");
   const [noteContent, setNoteContent] = useState("");
+  const [summary, setSummary] = useState("");
   const [editingNote, setEditingNote] = useState(null);
 
-  // Fetch all notes
-  const fetchNotes = async () => {
-    try {
-      const response = await api.get("notes/"); // ✅ token auto-attached
-      setNotes(response.data);
-    } catch (error) {
-      console.error("Failed to fetch notes:", error);
-    }
-  };
+  // Fetch skills and notes on component mount
+  useEffect(() => {
+    fetchSkills();
+    fetchNotes();
+  }, []);
 
-  // Fetch all skills for dropdown
   const fetchSkills = async () => {
     try {
-      const response = await api.get("skills/"); // ✅ token auto-attached
+      const response = await api.get("skills/");
       setSkills(response.data);
     } catch (error) {
       console.error("Failed to fetch skills:", error);
     }
   };
 
-  useEffect(() => {
-    fetchNotes();
-    fetchSkills();
-  }, []);
+  const fetchNotes = async () => {
+    try {
+      const response = await api.get("notes/");
+      setNotes(response.data);
+    } catch (error) {
+      console.error("Failed to fetch notes:", error);
+    }
+  };
 
-  // Add or Edit Note
+  // Summarize note content using OpenAI
+  const handleSummarize = async () => {
+    if (!noteContent) {
+      alert("Please write something to summarize!");
+      return;
+    }
+
+    try {
+      const response = await api.post("summarize-notes/", {
+        note_contents: [noteContent],
+      });
+      setSummary(response.data.summary);
+    } catch (error) {
+      console.error("Summarization failed:", error);
+      alert("Failed to summarize note.");
+    }
+  };
+
+  // Add or update note
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedSkill) {
+      alert("Please select a skill!");
+      return;
+    }
+
     try {
+      const payload = {
+        skill: selectedSkill,
+        content: summary || noteContent, // Use summary if available
+      };
+
       if (editingNote) {
-        // Update note
-        await api.put(`notes/${editingNote.id}/`, {
-          skill: selectedSkill,
-          content: noteContent,
-        });
-        setEditingNote(null);
+        await api.put(`notes/${editingNote.id}/`, payload);
       } else {
-        // Add new note
-        await api.post("notes/", {
-          skill: selectedSkill,
-          content: noteContent,
-        });
+        await api.post("notes/", payload);
       }
+
+      // Reset form
       setNoteContent("");
       setSelectedSkill("");
-      fetchNotes(); // refresh list
+      setSummary("");
+      setEditingNote(null);
+
+      fetchNotes();
     } catch (error) {
-      console.error(error);
+      console.error("Failed to save note:", error);
       alert("Failed to save note.");
     }
   };
 
-  // Delete Note
+  // Edit note
+  const handleEdit = (note) => {
+    setEditingNote(note);
+    setSelectedSkill(note.skill);
+    setNoteContent(note.content);
+    setSummary("");
+  };
+
+  // Delete note
   const handleDelete = async (noteId) => {
     if (!window.confirm("Are you sure you want to delete this note?")) return;
     try {
       await api.delete(`notes/${noteId}/`);
       fetchNotes();
     } catch (error) {
-      console.error(error);
-      alert("Failed to delete note.");
+      console.error("Failed to delete note:", error);
     }
   };
 
-  // Edit Note
-  const handleEdit = (note) => {
-    setEditingNote(note);
-    setSelectedSkill(note.skill);
-    setNoteContent(note.content);
-  };
-
   return (
-    <div className="p-8 bg-gradient-to-r from-purple-100 via-pink-100 to-yellow-100  min-h-screen">
+    <div className="p-8 bg-gradient-to-r from-purple-100 via-pink-100 to-yellow-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Notes</h1>
 
-      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow rounded-lg p-6 mb-6"
       >
+        {/* Skill Selector */}
         <select
           className="border p-2 rounded w-full mb-4"
           value={selectedSkill}
@@ -102,6 +126,7 @@ const Notes = () => {
           ))}
         </select>
 
+        {/* Note Content */}
         <textarea
           className="border p-2 rounded w-full mb-4"
           placeholder="Write your note..."
@@ -110,12 +135,31 @@ const Notes = () => {
           required
         />
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition"
-        >
-          {editingNote ? "Update Note" : "Add Note"}
-        </button>
+        {/* Summary Display */}
+        {summary && (
+          <div className="bg-gray-100 p-3 rounded mb-4">
+            <strong>Summary:</strong>
+            <p>{summary}</p>
+          </div>
+        )}
+
+        {/* Buttons */}
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={handleSummarize}
+            className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition"
+          >
+            Summarize Note
+          </button>
+
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          >
+            {editingNote ? "Update Note" : "Add Note"}
+          </button>
+        </div>
       </form>
 
       {/* Notes List */}
